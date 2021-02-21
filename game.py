@@ -45,7 +45,7 @@ class MyGame(arcade.Window):
         self.coin_list = arcade.SpriteList(use_spatial_hash=True)
 
         # Set up the player, specifically placing it at these coordinates.
-        image_source = ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png"
+        image_source = ":resources:images/animated_characters/robot/robot_idle.png"
         self.player_sprite = arcade.Sprite(image_source, CHARACTER_SCALING)
         self.player_sprite.center_x = 64
         self.player_sprite.center_y = 128
@@ -67,7 +67,7 @@ class MyGame(arcade.Window):
 
         for coordinate in coordinate_list:
             # Add a crate on the ground
-            wall = arcade.Sprite(":resources:images/tiles/boxCrate_double.png", TILE_SCALING)
+            wall = arcade.Sprite(":resources:images/tiles/brickBrown.png", TILE_SCALING)
             wall.position = coordinate
             self.wall_list.append(wall)
                    
