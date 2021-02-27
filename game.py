@@ -36,6 +36,9 @@ class MyGame(arcade.Window):
         # Call the parent class and set up the window
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
 
+        # Background image will be stored in this variable
+        self.background = None
+        
         # These are 'lists' that keep track of our sprites. Each sprite should
         # go into a list.
         self.coin_list = None
@@ -52,18 +55,31 @@ class MyGame(arcade.Window):
         self.view_bottom = 0
         self.view_left = 0
 
+        # Keep track of the score
+        self.score = 0
+        self.coins = 0
+        self.lives = 5
+
         # Load sounds
-        self.collect_coin_sound = arcade.load_sound(":resources:sounds/coin5.wav")
-        self.jump_sound = arcade.load_sound(":resources:sounds/jump2.wav")
+        self.collect_coin_sound = arcade.load_sound(":resources:sounds/coin1.wav")
+        self.jump_sound = arcade.load_sound(":resources:sounds/jump1.wav")
 
         arcade.set_background_color(arcade.csscolor.CORNFLOWER_BLUE)
 
     def setup(self):
         """ Set up the game here. Call this function to restart the game. """
 
+        # Load the background image. Do this in the setup so we don't keep reloading it all the time.
+        # Image from:
+        # http://wallpaper-gallery.net/single/free-background-images/free-background-images-22.html
+        self.background = arcade.load_texture(":resources:images/backgrounds/abstract_1.jpg")
+        
         # Used to keep track of our scrolling
         self.view_bottom = 0
         self.view_left = 0
+
+        # Keep track of the score
+        self.score = 0
 
         # Create the Sprite lists
         self.player_list = arcade.SpriteList()
@@ -74,7 +90,7 @@ class MyGame(arcade.Window):
         image_source = ":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png"
         self.player_sprite = arcade.Sprite(image_source, CHARACTER_SCALING)
         self.player_sprite.center_x = 64
-        self.player_sprite.center_y = 128
+        self.player_sprite.center_y = 96
         self.player_list.append(self.player_sprite)
 
         # Create the ground
@@ -115,10 +131,22 @@ class MyGame(arcade.Window):
         # Clear the screen to the background color
         arcade.start_render()
 
+        # Draw the background texture
+        arcade.draw_lrwh_rectangle_textured(0, 0,
+                                            SCREEN_WIDTH, SCREEN_HEIGHT,
+                                            self.background)
+
         # Draw our sprites
         self.wall_list.draw()
         self.coin_list.draw()
         self.player_list.draw()
+
+        # Draw our score on the screen, scrolling it with the viewport
+        score_text = f"Score: {self.score}"
+        coin_count = f" Coins: {self.coins}"
+        lives_count = f" Lives: {self.lives}"
+        arcade.draw_text(score_text + coin_count + lives_count, 10 + self.view_left, 10 + self.view_bottom,
+                         arcade.csscolor.WHITE, 18)
 
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed. """
@@ -140,7 +168,7 @@ class MyGame(arcade.Window):
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.player_sprite.change_x = 0
 
-    def update(self, delta_time):
+    def on_update(self, delta_time):
         """ Movement and game logic """
 
         # Move the player with the physics engine
@@ -156,6 +184,9 @@ class MyGame(arcade.Window):
             coin.remove_from_sprite_lists()
             # Play a sound
             arcade.play_sound(self.collect_coin_sound)
+            # Add one to the score
+            self.score += 100
+            self.coins += 1
 
         # --- Manage Scrolling ---
 
@@ -208,4 +239,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()  
+    main() 
