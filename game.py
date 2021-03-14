@@ -72,15 +72,15 @@ class PlayerCharacter(arcade.Sprite):
         # Images from Kenney.nl's Asset Pack 3
         # main_path = ":resources:images/animated_characters/female_adventurer/femaleAdventurer"
         # main_path = ":resources:images/animated_characters/female_person/femalePerson"
-        main_path = ":resources:images/animated_characters/male_person/malePerson"
+        # main_path = ":resources:images/animated_characters/male_person/malePerson"
         # main_path = ":resources:images/animated_characters/male_adventurer/maleAdventurer"
         # main_path = ":resources:images/animated_characters/zombie/zombie"
-        # main_path = ":resources:images/animated_characters/robot/robot"
+        main_path = ":resources:images/animated_characters/robot/robot"
 
         # Load textures for idle standing
-        self.idle_texture_pair = load_texture_pair(f"{main_path}_idle.png")
-        self.jump_texture_pair = load_texture_pair(f"{main_path}_jump.png")
-        self.fall_texture_pair = load_texture_pair(f"{main_path}_fall.png")
+        self.idle_texture_pair = load_texture_pair(f":resources:images/animated_characters/zombie/zombie_idle.png")
+        self.jump_texture_pair = load_texture_pair(f":resources:images/animated_characters/robot/robot_jump.png")
+        self.fall_texture_pair = load_texture_pair(f":resources:images/animated_characters/robot/robot_fall.png")
 
         # Load textures for walking
         self.walk_textures = []
@@ -229,7 +229,7 @@ class MyGame(arcade.Window):
         coins_layer_name = 'Coins'
 
         # Map name
-        map_name = f":resources:tmx_maps/map_with_ladders.tmx"
+        map_name = f"/home/tstrader/resources/tmx_maps/map_with_ladders.tmx"
 
         # Read in the tiled map
         my_map = arcade.tilemap.read_tmx(map_name)
