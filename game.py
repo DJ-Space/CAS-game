@@ -195,6 +195,8 @@ class MyGame(arcade.Window):
         self.collect_coin_sound = arcade.load_sound(":resources:sounds/coin1.wav")
         self.jump_sound = arcade.load_sound(":resources:sounds/jump1.wav")
         self.game_over = arcade.load_sound(":resources:sounds/gameover1.wav")
+        
+        self.count = 0
 
     def setup(self):
         """ Set up the game here. Call this function to restart the game. """
@@ -356,6 +358,16 @@ class MyGame(arcade.Window):
 
         self.process_keychange()
 
+    def die(self):
+        """ Player is dead """
+        self.player_sprite.center_x = PLAYER_START_X
+        self.player_sprite.center_y = PLAYER_START_Y
+
+        # Set the camera to the start
+        self.view_left = 0
+        self.view_bottom = 0
+        arcade.play_sound(self.game_over)
+
     def on_update(self, delta_time):
         """ Movement and game logic """
 
@@ -367,6 +379,11 @@ class MyGame(arcade.Window):
             self.player_sprite.can_jump = False
         else:
             self.player_sprite.can_jump = True
+            
+        if self.count % 60 == 0:
+            print(f"can jump = {self.player_sprite.can_jump}")
+
+        self.count += 1
 
         if self.physics_engine.is_on_ladder() and not self.physics_engine.can_jump():
             self.player_sprite.is_on_ladder = True
@@ -393,6 +410,11 @@ class MyGame(arcade.Window):
                 wall.change_y *= -1
             if wall.boundary_bottom and wall.bottom < wall.boundary_bottom and wall.change_y < 0:
                 wall.change_y *= -1
+        wall_hit_list = arcade.check_for_collision_with_list(self.player_sprite,
+                                                             self.wall_list)
+        if wall_hit_list and self.player_sprite.can_jump == False:
+            self.die()
+            changed_viewport = True
 
         # See if we hit any coins
         coin_hit_list = arcade.check_for_collision_with_list(self.player_sprite,
@@ -411,6 +433,11 @@ class MyGame(arcade.Window):
             # Remove the coin
             coin.remove_from_sprite_lists()
             arcade.play_sound(self.collect_coin_sound)
+            
+        # Did the player fall off the map?
+        if self.player_sprite.center_y < -1000:
+            self.die()
+            changed_viewport = True
 
         # Track if we need to change the viewport
         changed_viewport = False
