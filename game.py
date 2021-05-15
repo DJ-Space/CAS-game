@@ -154,6 +154,8 @@ class MyGame(arcade.Window):
         Initializer for the game
         """
 
+        self.level = 1
+        
         # Call the parent class and set up the window
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
 
@@ -195,6 +197,7 @@ class MyGame(arcade.Window):
         self.collect_coin_sound = arcade.load_sound(":resources:sounds/coin1.wav")
         self.jump_sound = arcade.load_sound(":resources:sounds/jump1.wav")
         self.game_over = arcade.load_sound(":resources:sounds/gameover1.wav")
+        self.touch_door = arcade.load_sound(":resources:sounds/upgrade1.wav")
         
         self.count = 0
 
@@ -226,7 +229,13 @@ class MyGame(arcade.Window):
         # Name of the layer in the file that has our platforms/walls
         platforms_layer_name = 'Platforms'
         moving_platforms_layer_name = 'Moving Platforms'
-
+        squishbox_layer_name = 'Squishboxes'
+        exitbox_layer_name = 'Exitboxes'
+        door_layer_name = 'Door'
+        killbox_layer_name = 'Killboxes'
+        exit_layer_name = 'Exit'
+        invisiblekillbox_layer_name = 'InvisibleKillboxes'
+        
         # Name of the layer that has items for pick-up
         coins_layer_name = 'Coins'
 
@@ -244,7 +253,17 @@ class MyGame(arcade.Window):
                                                       platforms_layer_name,
                                                       TILE_SCALING,
                                                       use_spatial_hash=True)
-
+        self.squishbox_list = arcade.tilemap.process_layer(my_map, squishbox_layer_name, TILE_SCALING, use_spatial_hash=True)
+        self.exitbox_list = arcade.tilemap.process_layer(my_map, exitbox_layer_name, TILE_SCALING, use_spatial_hash=True)
+        self.door_list = arcade.tilemap.process_layer(my_map, door_layer_name, TILE_SCALING, use_spatial_hash = True)
+        self.killbox_list = arcade.tilemap.process_layer(my_map, killbox_layer_name, TILE_SCALING, use_spatial_hash = True)
+        self.exit_list = arcade.tilemap.process_layer(my_map, exit_layer_name, TILE_SCALING, use_spatial_hash = True)
+        self.exits = {}
+        for exit in self.exit_list:
+            door_name = exit.properties["name"]
+            self.exits[door_name] = exit
+        self.invisiblekillbox_list = arcade.tilemap.process_layer(my_map, invisiblekillbox_layer_name, TILE_SCALING, use_spatial_hash = True)
+        
         # -- Moving Platforms
         moving_platforms_list = arcade.tilemap.process_layer(my_map, moving_platforms_layer_name, TILE_SCALING)
         for sprite in moving_platforms_list:
@@ -286,7 +305,10 @@ class MyGame(arcade.Window):
         self.ladder_list.draw()
         self.coin_list.draw()
         self.player_list.draw()
-
+        self.exitbox_list.draw()
+        self.killbox_list.draw()
+        self.door_list.draw()
+        
         # Draw our score on the screen, scrolling it with the viewport
         score_text = f"Score: {self.score}"
         arcade.draw_text(score_text, 10 + self.view_left, 10 + self.view_bottom,
@@ -368,6 +390,16 @@ class MyGame(arcade.Window):
         self.view_bottom = 0
         arcade.play_sound(self.game_over)
 
+    def door(self, door):
+        """Player touches door"""
+        door_name = door.properties["name"]
+        exit = self.exits[door_name]
+        self.player_sprite.center_x = exit.center_x
+        self.player_sprite.center_y = exit.center_y
+        self.view_left = 0
+        self.view_bottom = 0
+        arcade.play_sound(self.touch_door)    
+        
     def on_update(self, delta_time):
         """ Movement and game logic """
 
@@ -412,10 +444,33 @@ class MyGame(arcade.Window):
                 wall.change_y *= -1
         wall_hit_list = arcade.check_for_collision_with_list(self.player_sprite,
                                                              self.wall_list)
+        squishbox_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.squishbox_list)
         if wall_hit_list and self.player_sprite.can_jump == False:
             self.die()
             changed_viewport = True
 
+        killbox_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.killbox_list)
+        if killbox_hit_list:
+            self.die()
+            changed_viewport = True
+            
+        door_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.door_list)
+        if door_hit_list:
+            self.door(door_hit_list[0])
+            changed_viewport = True
+
+        exitbox_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.exitbox_list)
+        if exitbox_hit_list:
+            self.level +=1
+            self.setup()
+            self.view_left = 0
+            self.view_bottom = 0
+            changed_viewport = True
+        
+        invisiblekillbox_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.invisiblekillbox_list)
+        if invisiblekillbox_hit_list:
+            self.die()
+            changed_viewport = True
         # See if we hit any coins
         coin_hit_list = arcade.check_for_collision_with_list(self.player_sprite,
                                                              self.coin_list)
